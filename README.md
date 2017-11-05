@@ -18,5 +18,8 @@ if err != nil {
 		fmt.Println(v)
 	}
 }
-
 ```
+
+# License
+
+`netsurfer` source code is available under the MIT [License](https://github.com/ryonakao/netsurfer/blob/master/LICENSE).
