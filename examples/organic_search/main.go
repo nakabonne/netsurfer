@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
-	"netsurfer"
+
+	"github.com/ryonakao/netsurfer"
 )
 
 func main() {

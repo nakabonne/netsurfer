@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"netsurfer"
+
+	"github.com/ryonakao/netsurfer"
 )
 
 func main() {
