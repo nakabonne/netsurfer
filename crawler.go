@@ -10,15 +10,34 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// SerpsURL returns some URLs displayed on the first page when you google search
-func SerpsURL(word string) (urls []string, err error) {
-	word = strings.Replace(word, " ", "+", -1)
-	requestURL := "https://www.google.co.jp/search?rlz=1C5CHFA_enJP693JP693&q=" + string(word)
-	baseURL, err := url.Parse(requestURL)
+func GetRank(targetURL *url.URL, keyword string, depth int) (rank int, err error) {
+	resultURL, err := SerpsURL(keyword)
 	if err != nil {
 		return
 	}
-	doc, err := getDoc(baseURL)
+	urls, err := OrganicURLs(resultURL)
+	for i := 0; i < depth; i++ {
+		for _, u := range urls {
+			rank++
+			if u == targetURL {
+				return
+			}
+		}
+		resultURL, err = nextPage(resultURL)
+	}
+	return
+}
+
+// SerpsURL returns some URLs displayed on the first page when you google search
+func SerpsURL(word string) (serpsURL *url.URL, err error) {
+	word = strings.Replace(word, " ", "+", -1)
+	requestURL := "https://www.google.co.jp/search?rlz=1C5CHFA_enJP693JP693&q=" + string(word)
+	serpsURL, err = url.Parse(requestURL)
+	return
+}
+
+func OrganicURLs(reqURL *url.URL) (urls []*url.URL, err error) {
+	doc, err := getDoc(reqURL)
 	if err != nil {
 		return
 	}
@@ -26,10 +45,23 @@ func SerpsURL(word string) (urls []string, err error) {
 		srg.Find("a").Each(func(_ int, s *goquery.Selection) {
 			href, exists := s.Attr("href")
 			if exists {
-				reqURL, err := baseURL.Parse(href)
+				reqURL, err := reqURL.Parse(href)
 				if err == nil {
-					urls = append(urls, reqURL.String())
+					urls = append(urls, reqURL)
 				}
+			}
+		})
+	})
+	return
+}
+
+func nextPage(baseURL *url.URL) (nextURL *url.URL, err error) {
+	doc, err := getDoc(baseURL)
+	doc.Find(".b navend").Each(func(_ int, srg *goquery.Selection) {
+		srg.Find("a").Each(func(_ int, s *goquery.Selection) {
+			href, exists := s.Attr("href")
+			if exists {
+				nextURL, err = baseURL.Parse(href)
 			}
 		})
 	})
