@@ -13,9 +13,9 @@ func main() {
 		log.Fatalln(err)
 	}
 	fmt.Println("Success!")
-	for _, v := range urls {
+	for _, url := range urls {
 		// Retrieve the title
-		title, err := netsurfer.GetTitle(v.String())
+		title, err := netsurfer.GetTitle(url.String())
 		if err != nil {
 			log.Panicln(err)
 		}
