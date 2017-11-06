@@ -39,6 +39,10 @@ for _, url := range urls {
 }
 ```
 
+# dependencies
+
+- [goquery](https://github.com/PuerkitoBio/goquery)
+
 # License
 
 `netsurfer` source code is available under the MIT [License](https://github.com/ryonakao/netsurfer/blob/master/LICENSE).
