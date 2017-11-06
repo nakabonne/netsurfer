@@ -1,6 +1,8 @@
 package netsurfer
 
 import (
+	"bytes"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -9,6 +11,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+// SerpsURL get the URL displayed on the first page when you google search
 func SerpsURL(word string) (urls []string, err error) {
 
 	log.Println("検索ワード：", word)
@@ -36,6 +39,23 @@ func SerpsURL(word string) (urls []string, err error) {
 			}
 		})
 	})
+	return
+}
+
+// GetHTML get the response HTML when requesting for the given URL
+func GetHTML(url string) (html string, err error) {
+	res, err := http.Get(url)
+	if err != nil {
+		return
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return
+	}
+	buf := bytes.NewBuffer(body)
+	html = buf.String()
 	return
 }
 
