@@ -15,26 +15,24 @@ import (
 // OrganicSearch returns the page URL of organic search.
 // If you want to search up to 3 pages, please give 3 to depth.
 func OrganicSearch(keyword string, depth int) (urls []*url.URL, err error) {
-	var tmpURLs []*url.URL
 	resultURL, err := serpsURL(keyword)
 	if err != nil {
 		return
 	}
-	for i := 0; i < depth; i++ {
-		tmpURLs, err = organicURLs(resultURL)
+	serpsPages := []*url.URL{resultURL}
+	tmpURLs := []*url.URL{}
+
+	pages, err := getSERPsURLs(resultURL, depth)
+	if err != nil {
+		return
+	}
+	serpsPages = append(serpsPages, pages...)
+	for _, page := range serpsPages {
+		tmpURLs, err = organicURLs(page)
 		if err != nil {
-			urls = nil
 			return
 		}
 		urls = append(urls, tmpURLs...)
-		if last(i, depth) {
-			return
-		}
-		resultURL, err = nextPage(resultURL)
-		if err != nil {
-			urls = nil
-			return
-		}
 	}
 	return
 }
@@ -42,23 +40,24 @@ func OrganicSearch(keyword string, depth int) (urls []*url.URL, err error) {
 // GetRank returns the rank of the specified page when you search with the specified keyword.
 // If you want to search up to 3 pages, please give 3 to depth.
 func GetRank(targetURL *url.URL, keyword string, depth int) (rank int, err error) {
-	var urls []*url.URL
 	resultURL, err := serpsURL(keyword)
 	if err != nil {
 		return
 	}
-	for i := 0; i < depth; i++ {
-		urls, err = organicURLs(resultURL)
+	urls := []*url.URL{}
+	serpsPages := []*url.URL{resultURL}
+	pages, err := getSERPsURLs(resultURL, depth)
+	if err != nil {
+		return
+	}
+	serpsPages = append(serpsPages, pages...)
+	for _, page := range serpsPages {
+		urls, err = organicURLs(page)
 		for _, u := range urls {
 			rank++
-			if u == targetURL {
+			if sameURL(u, targetURL) {
 				return
 			}
-		}
-		resultURL, err = nextPage(resultURL)
-		if err != nil {
-			rank = 0
-			return
 		}
 	}
 	return 0, errors.New("That page is out of rank")
@@ -126,23 +125,32 @@ func organicURLs(reqURL *url.URL) (urls []*url.URL, err error) {
 	return
 }
 
-func nextPage(baseURL *url.URL) (nextURL *url.URL, err error) {
+func getSERPsURLs(baseURL *url.URL, depth int) (pages []*url.URL, err error) {
 	doc, err := getDoc(baseURL)
+	i := 0
 	doc.Find("#nav").Each(func(_ int, table *goquery.Selection) {
 		table.Find("tbody").Each(func(_ int, trs *goquery.Selection) {
 			trs.Find("tr").Each(func(_ int, tds *goquery.Selection) {
 				tds.Find("td").Each(func(_ int, srg *goquery.Selection) {
 					srg.Find("a").Each(func(_ int, s *goquery.Selection) {
+						if i >= depth-1 {
+							return
+						}
 						href, exists := s.Attr("href")
+						fmt.Println("へっ", href)
 						if exists {
-							nextURL, err = baseURL.Parse(href)
+							nextURL, _ := baseURL.Parse(href)
+							pages = append(pages, nextURL)
+							i++
+						} else {
+							err = errors.New("failed to retrieve the search result page")
+							return
 						}
 					})
 				})
 			})
 		})
 	})
-	fmt.Println("次のURLは", nextURL)
 	return
 }
 
@@ -161,4 +169,8 @@ func getDoc(u *url.URL) (doc *goquery.Document, err error) {
 
 func last(local int, last int) bool {
 	return local == last-1
+}
+
+func sameURL(urlA *url.URL, urlB *url.URL) bool {
+	return urlA == urlB
 }

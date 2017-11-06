@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	urls, err := netsurfer.OrganicSearch("ruby", 3)
+	urls, err := netsurfer.OrganicSearch("中尾", 3)
 	if err != nil {
 		log.Fatalln(err)
 	} else {
