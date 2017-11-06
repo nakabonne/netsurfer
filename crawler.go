@@ -2,6 +2,7 @@ package netsurfer
 
 import (
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -10,13 +11,36 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func GetRank(targetURL *url.URL, keyword string, depth int) (rank int, err error) {
-	resultURL, err := SerpsURL(keyword)
+func OrganicSearch(keyword string, depth int) (urls []*url.URL, err error) {
+	var tmpURLs []*url.URL
+	resultURL, err := serpsURL(keyword)
 	if err != nil {
 		return
 	}
-	urls, err := OrganicURLs(resultURL)
 	for i := 0; i < depth; i++ {
+		tmpURLs, err = organicURLs(resultURL)
+		if err != nil {
+			urls = nil
+			return
+		}
+		urls = append(urls, tmpURLs...)
+		resultURL, err = nextPage(resultURL)
+		if err != nil {
+			urls = nil
+			return
+		}
+	}
+	return
+}
+
+func GetRank(targetURL *url.URL, keyword string, depth int) (rank int, err error) {
+	var urls []*url.URL
+	resultURL, err := serpsURL(keyword)
+	if err != nil {
+		return
+	}
+	for i := 0; i < depth; i++ {
+		urls, err = organicURLs(resultURL)
 		for _, u := range urls {
 			rank++
 			if u == targetURL {
@@ -24,48 +48,12 @@ func GetRank(targetURL *url.URL, keyword string, depth int) (rank int, err error
 			}
 		}
 		resultURL, err = nextPage(resultURL)
+		if err != nil {
+			rank = 0
+			return
+		}
 	}
-	return
-}
-
-// SerpsURL returns some URLs displayed on the first page when you google search
-func SerpsURL(word string) (serpsURL *url.URL, err error) {
-	word = strings.Replace(word, " ", "+", -1)
-	requestURL := "https://www.google.co.jp/search?rlz=1C5CHFA_enJP693JP693&q=" + string(word)
-	serpsURL, err = url.Parse(requestURL)
-	return
-}
-
-func OrganicURLs(reqURL *url.URL) (urls []*url.URL, err error) {
-	doc, err := getDoc(reqURL)
-	if err != nil {
-		return
-	}
-	doc.Find(".r").Each(func(_ int, srg *goquery.Selection) {
-		srg.Find("a").Each(func(_ int, s *goquery.Selection) {
-			href, exists := s.Attr("href")
-			if exists {
-				reqURL, err := reqURL.Parse(href)
-				if err == nil {
-					urls = append(urls, reqURL)
-				}
-			}
-		})
-	})
-	return
-}
-
-func nextPage(baseURL *url.URL) (nextURL *url.URL, err error) {
-	doc, err := getDoc(baseURL)
-	doc.Find(".b navend").Each(func(_ int, srg *goquery.Selection) {
-		srg.Find("a").Each(func(_ int, s *goquery.Selection) {
-			href, exists := s.Attr("href")
-			if exists {
-				nextURL, err = baseURL.Parse(href)
-			}
-		})
-	})
-	return
+	return 0, errors.New("That page is out of rank")
 }
 
 // GetHTML returns the response HTML when requesting for the given URL
@@ -98,6 +86,48 @@ func GetTitle(baseURL string) (title string, err error) {
 	}
 	doc.Find("title").Each(func(_ int, srg *goquery.Selection) {
 		title = srg.Text()
+	})
+	return
+}
+
+// serpsURL returns some URLs displayed on the first page when you google search
+func serpsURL(word string) (serpsURL *url.URL, err error) {
+	word = strings.Replace(word, " ", "+", -1)
+	requestURL := "https://www.google.co.jp/search?rlz=1C5CHFA_enJP693JP693&q=" + string(word)
+	serpsURL, err = url.Parse(requestURL)
+	return
+}
+
+func organicURLs(reqURL *url.URL) (urls []*url.URL, err error) {
+	doc, err := getDoc(reqURL)
+	if err != nil {
+		return
+	}
+	doc.Find(".r").Each(func(_ int, srg *goquery.Selection) {
+		srg.Find("a").Each(func(_ int, s *goquery.Selection) {
+			href, exists := s.Attr("href")
+			if exists {
+				reqURL, err := reqURL.Parse(href)
+				if err != nil {
+					urls = nil
+					return
+				}
+				urls = append(urls, reqURL)
+			}
+		})
+	})
+	return
+}
+
+func nextPage(baseURL *url.URL) (nextURL *url.URL, err error) {
+	doc, err := getDoc(baseURL)
+	doc.Find(".b navend").Each(func(_ int, srg *goquery.Selection) {
+		srg.Find("a").Each(func(_ int, s *goquery.Selection) {
+			href, exists := s.Attr("href")
+			if exists {
+				nextURL, err = baseURL.Parse(href)
+			}
+		})
 	})
 	return
 }
