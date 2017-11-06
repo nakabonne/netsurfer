@@ -1,6 +1,6 @@
 # netsurfer
 
-netsurfer is a very light scraping framework
+netsurfer is a very lightweight scraping framework
 
 # What can be done
 
