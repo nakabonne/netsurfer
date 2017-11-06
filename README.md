@@ -11,17 +11,22 @@ $ go run examples/main.go
 - You can get the URL displayed on the first page when you google search
 - You can get the HTML of the website displayed on the first page when you google search
 
+# Installation
+
+```
+$ go get -u github.com/ryonakao/netsurfer
+```
+
 # Usage
 
 ```go
-urls, err := netsurfer.SerpsURL("ruby")
-if err != nil {
-	fmt.Println("erorr!", err)
-} else {
-	fmt.Println("Success!")
-	for _, v := range urls {
-		fmt.Println(v)
-	}
+import (
+	"fmt"
+	"github.com/ryonakao/netsurfer"
+)
+urls, _ := netsurfer.SerpsURL("ruby")
+for _, v := range urls {
+	fmt.Println(v)
 }
 ```
 
