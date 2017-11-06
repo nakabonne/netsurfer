@@ -3,7 +3,6 @@ package netsurfer
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -54,8 +53,9 @@ func GetRank(targetURL *url.URL, keyword string, depth int) (rank int, err error
 	for _, page := range serpsPages {
 		urls, err = organicURLs(page)
 		for _, u := range urls {
+			query, _ := url.ParseQuery(u.RawQuery)
 			rank++
-			if sameURL(u, targetURL) {
+			if sameURL(query["q"][0], targetURL.String()) {
 				return
 			}
 		}
@@ -137,7 +137,6 @@ func getSERPsURLs(baseURL *url.URL, depth int) (pages []*url.URL, err error) {
 							return
 						}
 						href, exists := s.Attr("href")
-						fmt.Println("へっ", href)
 						if exists {
 							nextURL, _ := baseURL.Parse(href)
 							pages = append(pages, nextURL)
@@ -171,6 +170,6 @@ func last(local int, last int) bool {
 	return local == last-1
 }
 
-func sameURL(urlA *url.URL, urlB *url.URL) bool {
+func sameURL(urlA string, urlB string) bool {
 	return urlA == urlB
 }
