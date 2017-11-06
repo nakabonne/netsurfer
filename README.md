@@ -6,6 +6,11 @@
 $ go run examples/main.go
 ```
 
+# What can be done
+
+- You can get the URL displayed on the first page when you google search
+- You can get the HTML of the website displayed on the first page when you google search
+
 # Usage
 
 ```go

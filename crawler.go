@@ -9,10 +9,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func main() {
-
-}
-
 func SerpsURL(word string) (urls []string, err error) {
 
 	log.Println("検索ワード：", word)
