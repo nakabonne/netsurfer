@@ -12,6 +12,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+// OrganicSearch returns the page URL of organic search.
+// If you want to search up to 3 pages, please give 3 to depth.
 func OrganicSearch(keyword string, depth int) (urls []*url.URL, err error) {
 	var tmpURLs []*url.URL
 	resultURL, err := serpsURL(keyword)
@@ -37,10 +39,8 @@ func OrganicSearch(keyword string, depth int) (urls []*url.URL, err error) {
 	return
 }
 
-func last(local int, last int) bool {
-	return local == last-1
-}
-
+// GetRank returns the rank of the specified page when you search with the specified keyword.
+// If you want to search up to 3 pages, please give 3 to depth.
 func GetRank(targetURL *url.URL, keyword string, depth int) (rank int, err error) {
 	var urls []*url.URL
 	resultURL, err := serpsURL(keyword)
@@ -98,7 +98,6 @@ func GetTitle(baseURL string) (title string, err error) {
 	return
 }
 
-// serpsURL returns some URLs displayed on the first page when you google search
 func serpsURL(word string) (serpsURL *url.URL, err error) {
 	word = strings.Replace(word, " ", "+", -1)
 	requestURL := "https://www.google.co.jp/search?rlz=1C5CHFA_enJP693JP693&q=" + string(word)
@@ -158,4 +157,8 @@ func getDoc(u *url.URL) (doc *goquery.Document, err error) {
 		return
 	}
 	return
+}
+
+func last(local int, last int) bool {
+	return local == last-1
 }
