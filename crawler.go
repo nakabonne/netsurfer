@@ -3,7 +3,6 @@ package netsurfer
 import (
 	"bytes"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -11,19 +10,14 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// SerpsURL get the URL displayed on the first page when you google search
+// SerpsURL returns some URLs displayed on the first page when you google search
 func SerpsURL(word string) (urls []string, err error) {
-
-	log.Println("検索ワード：", word)
 	word = strings.Replace(word, " ", "+", -1)
 	requestURL := "https://www.google.co.jp/search?rlz=1C5CHFA_enJP693JP693&q=" + string(word)
-	log.Println("検索URL：", requestURL)
-
 	baseURL, err := url.Parse(requestURL)
 	if err != nil {
 		return
 	}
-
 	doc, err := getDoc(baseURL)
 	if err != nil {
 		return
@@ -42,7 +36,7 @@ func SerpsURL(word string) (urls []string, err error) {
 	return
 }
 
-// GetHTML get the response HTML when requesting for the given URL
+// GetHTML returns the response HTML when requesting for the given URL
 func GetHTML(url string) (html string, err error) {
 	res, err := http.Get(url)
 	if err != nil {
@@ -56,6 +50,23 @@ func GetHTML(url string) (html string, err error) {
 	}
 	buf := bytes.NewBuffer(body)
 	html = buf.String()
+	return
+}
+
+// GetTitle returns the title tag of the HTML file indicated by the given URL
+func GetTitle(baseURL string) (title string, err error) {
+	var parsedURL *url.URL
+	parsedURL, err = url.Parse(baseURL)
+	if err != nil {
+		return
+	}
+	doc, err := getDoc(parsedURL)
+	if err != nil {
+		return
+	}
+	doc.Find("title").Each(func(_ int, srg *goquery.Selection) {
+		title = srg.Text()
+	})
 	return
 }
 
