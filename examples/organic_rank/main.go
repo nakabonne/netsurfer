@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	u, _ := url.Parse("https://github.com/ryonakao")
+	u, _ := url.Parse("https://qiita.com/ryonakao")
 	rank, err := netsurfer.GetRank(u, "ryonakao", 2)
 	if err != nil {
 		log.Fatalln(err)
