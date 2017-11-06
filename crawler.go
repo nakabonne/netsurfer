@@ -3,6 +3,7 @@ package netsurfer
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -24,6 +25,9 @@ func OrganicSearch(keyword string, depth int) (urls []*url.URL, err error) {
 			return
 		}
 		urls = append(urls, tmpURLs...)
+		if last(i, depth) {
+			return
+		}
 		resultURL, err = nextPage(resultURL)
 		if err != nil {
 			urls = nil
@@ -31,6 +35,10 @@ func OrganicSearch(keyword string, depth int) (urls []*url.URL, err error) {
 		}
 	}
 	return
+}
+
+func last(local int, last int) bool {
+	return local == last-1
 }
 
 func GetRank(targetURL *url.URL, keyword string, depth int) (rank int, err error) {
@@ -121,14 +129,21 @@ func organicURLs(reqURL *url.URL) (urls []*url.URL, err error) {
 
 func nextPage(baseURL *url.URL) (nextURL *url.URL, err error) {
 	doc, err := getDoc(baseURL)
-	doc.Find(".b navend").Each(func(_ int, srg *goquery.Selection) {
-		srg.Find("a").Each(func(_ int, s *goquery.Selection) {
-			href, exists := s.Attr("href")
-			if exists {
-				nextURL, err = baseURL.Parse(href)
-			}
+	doc.Find("#nav").Each(func(_ int, table *goquery.Selection) {
+		table.Find("tbody").Each(func(_ int, trs *goquery.Selection) {
+			trs.Find("tr").Each(func(_ int, tds *goquery.Selection) {
+				tds.Find("td").Each(func(_ int, srg *goquery.Selection) {
+					srg.Find("a").Each(func(_ int, s *goquery.Selection) {
+						href, exists := s.Attr("href")
+						if exists {
+							nextURL, err = baseURL.Parse(href)
+						}
+					})
+				})
+			})
 		})
 	})
+	fmt.Println("次のURLは", nextURL)
 	return
 }
 

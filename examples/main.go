@@ -7,13 +7,13 @@ import (
 )
 
 func main() {
-	urls, err := netsurfer.SerpsURL("ruby")
+	urls, err := netsurfer.OrganicSearch("ruby", 3)
 	if err != nil {
 		log.Fatalln(err)
 	} else {
 		fmt.Println("Success!")
 		for _, v := range urls {
-			title, err := netsurfer.GetTitle(v)
+			title, err := netsurfer.GetTitle(v.String())
 			if err != nil {
 				log.Panicln(err)
 			}
