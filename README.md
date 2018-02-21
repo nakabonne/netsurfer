@@ -12,7 +12,7 @@ This has only the minimum function necessary for scraping.
 # Installation
 
 ```
-$ go get -u github.com/ryonakao/netsurfer
+$ go get -u github.com/nakabonne/netsurfer
 ```
 
 # Usage
